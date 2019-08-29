@@ -27,12 +27,27 @@ namespace Server
             }
 
             app.UseRouting();
-
+                
+            // Timing middleware sets the Server-Timing trailer
+            app.UseMiddleware<TimingMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/", async context =>
                 {
+                    // Declare trailer
+                    if (context.Response.SupportsTrailers())
+                    {
+                        context.Response.DeclareTrailer("Sample-Trailer");
+                    }
+
+                    // Write response body
                     await context.Response.WriteAsync("Hello World!");
+
+                    // Actually set trailer
+                    if (context.Response.SupportsTrailers())
+                    {
+                        context.Response.AppendTrailer("Sample-Trailer", "sample-value");
+                    }
                 });
             });
         }
